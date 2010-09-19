@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+require 'rmre'
+
+generator = ModelGenerator::Generator.new(ARGV[0])
+generator.connect
+generator.create_models(generator.connection.tables, %w(inv_ ev_))
