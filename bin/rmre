@@ -1,7 +1,47 @@
 #!/usr/bin/env ruby
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+require 'optparse'
 require 'rmre'
 
-generator = ModelGenerator::Generator.new(ARGV[0])
+options = {:db => {}}
+optparse = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Display this screen') do
+    puts opts
+    exit
+  end
+
+  options[:db][:adapter] = 'sqlite3'
+  opts.on('-a', '--adapter [ADAPTER]', 'ActiveRecord adapter to use (default SQLite3)') do |a|
+    options[:db][:adapter] = a
+  end
+
+  options[:db][:database] = 'db.sqlite3'
+  opts.on('-d', '--database DATABASE', 'Name of database') do |d|
+    options[:db][:database] = d
+  end
+
+  options[:db][:username] = ''
+  opts.on('-u', '--user [USER]', 'Databse connection username (default empty)') do |u|
+    options[:db][:username] = u
+  end
+
+  options[:db][:password] = ''
+  opts.on('-p', '--pass [PASS]', 'Database connection password (default empty)') do |p|
+    options[:db][:password] = p
+  end
+
+  options[:out_path] = File.expand_path(File.join(Dir.tmpdir, "rmre_models"))
+  opts.on('-o', '--out [PATH]', 'Path where models will be generated (default <TMP>/rmre_models)') do |p|
+    options[:out_path] = p
+  end
+  
+  opts.on('-i', '--include pattern1,pattern2', Array, 'Include prefixes') do |p|
+    options[:include] = p
+  end
+end
+
+optparse.parse!
+
+generator = ModelGenerator::Generator.new(options[:db], options[:out_path], options[:exclude])
 generator.connect
-generator.create_models(generator.connection.tables, %w(inv_ ev_))
+generator.create_models(generator.connection.tables)

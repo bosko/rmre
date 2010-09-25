@@ -9,10 +9,11 @@ module ModelGenerator
 
     SETTINGS_ROOT = File.expand_path('../../../../db', __FILE__)
     
-    def initialize(options, out_path = nil)
+    def initialize(options, out_path, include)
       @connection_options = options
       @connection = nil
-      @output_path = out_path || File.expand_path(File.join(Dir.tmpdir, "rmre_models"))
+      @output_path = out_path
+      @include_prefixes = include
     end
 
     def connect
@@ -22,11 +23,13 @@ module ModelGenerator
       @connection = ActiveRecord::Base.connection
     end
 
-    def create_models(tables = [], include_prefixes = [])
+    def create_models(tables)
+      return unless tables.is_a? Array
+      
       FileUtils.mkdir_p(@output_path) if !Dir.exists?(@output_path)
 
       tables.each do |table_name|
-        create_model(table_name) if process?(table_name, include_prefixes)
+        create_model(table_name) if process?(table_name)
       end
     end
     
@@ -42,10 +45,10 @@ module ModelGenerator
       end
     end
 
-    def process?(table_name, include_prefixes)
-      return true if include_prefixes.empty?
+    def process?(table_name)
+      return true if @include_prefixes.nil? || @include_prefixes.empty?
       
-      include_prefixes.each do |prefix|
+      @include_prefixes.each do |prefix|
         return true if table_name =~ /^#{prefix}/
       end
 
