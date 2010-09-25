@@ -65,6 +65,8 @@ module ModelGenerator
       case @connection_options[:adapter]
       when 'mysql'
         fk = connection.select_all(mysql_fk_sql)
+      when 'postgresql'
+        fk = connection.select_all(psql_fk_sql)
       end
     end
 
@@ -96,8 +98,35 @@ select
  referenced_column_name as to_column
 from information_schema.KEY_COLUMN_USAGE
 where referenced_table_schema like '%'
+ and constraint_schema = '#{@connection_options[:database]}'
  and referenced_table_name is not null
 SQL
     end
+
+    def psql_fk_sql
+      sql = <<-SQL
+SELECT tc.table_name as from_table,
+          kcu.column_name as from_column,
+          ccu.table_name AS to_table,
+          ccu.column_name AS to_column
+     FROM information_schema.table_constraints tc
+LEFT JOIN information_schema.key_column_usage kcu
+       ON tc.constraint_catalog = kcu.constraint_catalog
+      AND tc.constraint_schema = kcu.constraint_schema
+      AND tc.constraint_name = kcu.constraint_name
+      
+LEFT JOIN information_schema.referential_constraints rc
+       ON tc.constraint_catalog = rc.constraint_catalog
+      AND tc.constraint_schema = rc.constraint_schema
+      AND tc.constraint_name = rc.constraint_name
+LEFT JOIN information_schema.constraint_column_usage ccu
+       ON rc.unique_constraint_catalog = ccu.constraint_catalog
+      AND rc.unique_constraint_schema = ccu.constraint_schema
+      AND rc.unique_constraint_name = ccu.constraint_name
+    WHERE tc.table_name like '%'
+    AND tc.constraint_type = 'FOREIGN KEY';
+SQL
+    end
+    
   end
 end
