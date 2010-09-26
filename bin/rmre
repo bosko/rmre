@@ -42,6 +42,6 @@ end
 
 optparse.parse!
 
-generator = ModelGenerator::Generator.new(options[:db], options[:out_path], options[:exclude])
+generator = ModelGenerator::Generator.new(options[:db], options[:out_path], options[:include])
 generator.connect
 generator.create_models(generator.connection.tables)
