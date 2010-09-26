@@ -3,37 +3,41 @@ require "spec_helper"
 module ModelGenerator
   describe Generator do
     let(:settings) do |sett|
-      sett = {:adapter => 'some_adapter',
-        :database => 'db',
-        :username => 'user',
-        :password => 'pass'}
+      sett = {:db => {:adapter => 'some_adapter',
+          :database => 'db',
+          :username => 'user',
+          :password => 'pass'},
+        :out_path => '/tmp/gne-test',
+        :include => ['incl1_', 'incl2_']}
     end
     
-    let(:generator) { Generator.new(settings) }
-    let(:prefixes)  { %w(incl1_ incl2_) }
+    let(:generator) { Generator.new(settings[:db], settings[:out_path], settings[:include]) }
     let(:tables)    { %w(incl1_tbl1 incl1_tbl2 incl2_tbl1 user processes) }
     
     it "should flag table inv_plan for processing" do
-      generator.process?('incl1_tbl1', prefixes).should be_true
+      generator.process?('incl1_tbl1').should be_true
     end
 
     it "should not flag table shkprocesses for processing" do
-      generator.process?('processes', prefixes).should be_false
+      generator.process?('processes').should be_false
     end
 
     it "should process three tables from the passed array of tables" do
       generator.stub(:create_model)
 
       generator.should_receive(:create_model).exactly(3).times
-      generator.create_models(tables, prefixes)
+      generator.create_models(tables)
     end
 
     it "should contain set_table_name 'incl1_tbl1' in generated source" do
-      generator.generate_model_source('incl1_tbl1').should match(/set_table_name \'incl1_tbl1\'/)
+      generator.stub_chain(:connection, :primary_key).and_return("id")
+      generator.send(:generate_model_source, 'incl1_tbl1', []).should match(/set_table_name \'incl1_tbl1\'/)
     end
     
     it "should create three model files" do
-      generator.create_models(tables, prefixes)
+      generator.stub_chain(:connection, :primary_key).and_return("id")
+      generator.stub(:foreign_keys).and_return([])
+      generator.create_models(tables)
       Dir.glob(File.join(generator.output_path, "*.rb")).should have(3).items
     end
   end
