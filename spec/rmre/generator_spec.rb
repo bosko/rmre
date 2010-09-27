@@ -1,6 +1,6 @@
 require "spec_helper"
 
-module ModelGenerator
+module Rmre
   describe Generator do
     let(:settings) do |sett|
       sett = {:db => {:adapter => 'some_adapter',

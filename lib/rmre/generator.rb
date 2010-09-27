@@ -2,7 +2,7 @@ require "tmpdir"
 require "fileutils"
 require "active_record"
 
-module ModelGenerator
+module Rmre
   class Generator
     attr_reader :connection
     attr_reader :output_path

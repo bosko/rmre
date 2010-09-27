@@ -1,1 +1,1 @@
-require 'generator/generator'
+require 'rmre/generator'
