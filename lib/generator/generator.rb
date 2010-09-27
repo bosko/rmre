@@ -36,6 +36,7 @@ module ModelGenerator
     def create_model(table_name)
       File.open(File.join(output_path, "#{table_name}.rb"), "w") do |file|
         constraints = []
+
         foreign_keys.each do |fk|
           src = constraint_src(table_name, fk)
           constraints << src unless src.nil?
@@ -64,10 +65,15 @@ module ModelGenerator
       fk = []
       case @connection_options[:adapter]
       when 'mysql'
-        fk = connection.select_all(mysql_fk_sql)
+        fk = mysql_foreign_keys
       when 'postgresql'
-        fk = connection.select_all(psql_fk_sql)
+        fk = psql_foreign_keys
+      when 'sqlserver'
+        fk = mssql_foreign_keys
+      when 'oracle_enhanced'
+        fk = oracle_foreign_keys
       end
+      fk
     end
 
     def constraint_src(table_name, fk={})
@@ -88,8 +94,8 @@ module ModelGenerator
       src << "  #{constraints.join("\n  ")}"
       src << "\nend\n"
     end
-
-    def mysql_fk_sql
+    
+    def mysql_foreign_keys
       sql = <<-SQL
 select
  table_name as from_table,
@@ -101,9 +107,10 @@ where referenced_table_schema like '%'
  and constraint_schema = '#{@connection_options[:database]}'
  and referenced_table_name is not null
 SQL
+      connection.select_all(sql)
     end
 
-    def psql_fk_sql
+    def psql_foreign_keys
       sql = <<-SQL
 SELECT tc.table_name as from_table,
           kcu.column_name as from_column,
@@ -126,7 +133,46 @@ LEFT JOIN information_schema.constraint_column_usage ccu
     WHERE tc.table_name like '%'
     AND tc.constraint_type = 'FOREIGN KEY';
 SQL
+      connection.select_all(sql)
     end
-    
+
+    def mssql_foreign_keys
+      sql = <<-SQL
+SELECT C.TABLE_NAME [from_table], 
+       KCU.COLUMN_NAME [from_column], 
+       C2.TABLE_NAME [to_table], 
+       KCU2.COLUMN_NAME [to_column]
+FROM   INFORMATION_SCHEMA.TABLE_CONSTRAINTS C 
+       INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU 
+         ON C.CONSTRAINT_SCHEMA = KCU.CONSTRAINT_SCHEMA 
+            AND C.CONSTRAINT_NAME = KCU.CONSTRAINT_NAME 
+       INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC 
+         ON C.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA 
+            AND C.CONSTRAINT_NAME = RC.CONSTRAINT_NAME 
+       INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS C2 
+         ON RC.UNIQUE_CONSTRAINT_SCHEMA = C2.CONSTRAINT_SCHEMA 
+            AND RC.UNIQUE_CONSTRAINT_NAME = C2.CONSTRAINT_NAME 
+       INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 
+         ON C2.CONSTRAINT_SCHEMA = KCU2.CONSTRAINT_SCHEMA 
+            AND C2.CONSTRAINT_NAME = KCU2.CONSTRAINT_NAME 
+            AND KCU.ORDINAL_POSITION = KCU2.ORDINAL_POSITION 
+WHERE  C.CONSTRAINT_TYPE = 'FOREIGN KEY'
+SQL
+      connection.select_all(sql)
+    end
+
+    def oracle_foreign_keys
+      fk = []
+      connection.tables.each do |table|
+        connection.foreign_keys(table).each do |oracle_fk|
+          table_fk = { 'from_table' => oracle_fk.from_table,
+            'from_column' => oracle_fk.options[:column],
+            'to_table' => oracle_fk.to_table,
+            'to_column' => oracle_fk.options[:primary_key] }
+          fk << table_fk
+        end
+      end
+      fk
+    end
   end
 end

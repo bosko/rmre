@@ -15,7 +15,6 @@ optparse = OptionParser.new do |opts|
     options[:db][:adapter] = a
   end
 
-  options[:db][:database] = 'db.sqlite3'
   opts.on('-d', '--database DATABASE', 'Name of database') do |d|
     options[:db][:database] = d
   end
@@ -30,13 +29,25 @@ optparse = OptionParser.new do |opts|
     options[:db][:password] = p
   end
 
+  opts.on('-m', '--mode [MODE]', 'MS SQL conenction mode (ODBC only)') do |m|
+    options[:db][:mode] = m
+  end
+
+  opts.on('-n', '--dsn [DSN]', 'ODBC DSN name (MS SQL only)') do |n|
+    options[:db][:dsn] = n
+  end
+  
   options[:out_path] = File.expand_path(File.join(Dir.tmpdir, "rmre_models"))
   opts.on('-o', '--out [PATH]', 'Path where models will be generated (default <TMP>/rmre_models)') do |p|
     options[:out_path] = p
   end
+
+  opts.on('-s', '--host [HOST]', 'IP address or name of the host') do |s|
+    options[:db][:host] = s
+  end
   
-  opts.on('-i', '--include pattern1,pattern2', Array, 'Include prefixes') do |p|
-    options[:include] = p
+  opts.on('-i', '--include pattern1,pattern2', Array, 'Include prefixes') do |i|
+    options[:include] = i
   end
 end
 
