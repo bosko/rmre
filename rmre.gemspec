@@ -24,4 +24,6 @@ Gem::Specification.new do |s|
   s.require_paths      = ["lib"]
 
   s.extra_rdoc_files   = ["README.rdoc", "LICENSE.txt"]
+  s.rdoc_options << '--title' << 'Rmre -- Rails Models Reverse Engineering' <<
+                       '--main' << 'README.rdoc'
 end
