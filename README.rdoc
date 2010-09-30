@@ -1,3 +1,59 @@
 = Rails Models Reverse Engineering
 
-Utility gem for creating ActiveRecord models for existing database.
+Rmre is utility gem for creating Ruby on Rails, at the moment only ActiveRecord, models
+for legacy databases. Besides creating all models it sets proper table name and primary
+key if tables and columns naming doesn't follow Rails convention. It also tries to read
+all foreign keys data from a database if DBE is MySql, PostgreSQL, Oracle or MS SQL and
+sets models relationships on a basic level through belongs_to and has_many declarations.
+
+= How to use
+
+Rmre is very simple to use:
+
+  rmre -a mysql -d my_database -u my_username -p my_password -o /path/where/models/will/be/created
+
+That's all! Of course there is standard help which you can print at any time:
+
+  rmre --help
+
+or
+
+  rmre -h
+
+I believe that command line options are self explanatory especially if you are familliar
+with Ruby on Rails database handling. Apart from Ruby on Rails related options there are
+several that should be explained.
+
+== MS SQL options
+
+Options:
+
+  -m or --mode
+  -n or --dsn
+
+are user for setting ODBC specific arguments. First one must be used with MS SQL and must
+be set to ODBC and the second one is data source name.
+
+== General options
+
+Otput directory can be set with:
+
+  -o /path/to/target/directory
+  --out /path/to/target/directory
+
+otherwise Rmre will create models in the directory where it is started.
+
+Rmre can also filter tables for which it will create models. Filtering is very basic and
+it mathes whether name of the table starts with passed patterns:
+
+  -i ec_,vi_
+  --include ic_,vi_
+
+with create models only for tables names with prefixes ec_ or vi_.
+
+= TODO
+
+* Improve filtering
+* Write more tests
+* Foreign key support for other DBEs (firebird, SQLite, Sybase,...)
+* Probably much more which I cannot remember right now
