@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3.6"
   s.rubyforge_project         = "rmre"
 
+  s.add_dependency "activerecord", ">= 3.0.0"
   s.add_development_dependency "rspec"
 
   s.files              = `git ls-files`.split("\n")
