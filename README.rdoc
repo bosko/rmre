@@ -6,6 +6,12 @@ key if tables and columns naming doesn't follow Rails convention. It also tries 
 all foreign keys data from a database if DBE is MySql, PostgreSQL, Oracle or MS SQL and
 sets models relationships on a basic level through belongs_to and has_many declarations.
 
+= Installation
+
+Rmre gem is on the Rubygems and you can install it with
+
+  gem install rmre
+
 = How to use
 
 Rmre is very simple to use:
@@ -54,8 +60,8 @@ with create models only for tables names with prefixes ec_ or vi_.
 == Test databases
 
 If you want to try *Rmre* and you do not have sample database you can use
-"Sakila":http://dev.mysql.com/doc/sakila/en/sakila.html#sakila-installation for MySQL and
-"Pakila":http://pgfoundry.org/projects/dbsamples for PostgreSQL.
+_Sakila_ at http://dev.mysql.com/doc/sakila/en/sakila.html#sakila-installation for MySQL and
+_Pagila_ at http://pgfoundry.org/projects/dbsamples for PostgreSQL.
 
 = TODO
 
