@@ -51,6 +51,12 @@ it mathes whether name of the table starts with passed patterns:
 
 with create models only for tables names with prefixes ec_ or vi_.
 
+== Test databases
+
+If you want to try *Rmre* and you do not have sample database you can use
+"Sakila":http://dev.mysql.com/doc/sakila/en/sakila.html#sakila-installation for MySQL and
+"Pakila":http://pgfoundry.org/projects/dbsamples for PostgreSQL.
+
 = TODO
 
 * Improve filtering
