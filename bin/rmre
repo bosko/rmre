@@ -5,17 +5,18 @@ require 'rmre'
 
 options = {:db => {}}
 optparse = OptionParser.new do |opts|
+  opts.banner = "Usage: rmre -a ADAPTER -d DATABASE [options]"
+  
   opts.on('-h', '--help', 'Display this screen') do
     puts opts
     exit
   end
 
-  options[:db][:adapter] = 'sqlite3'
-  opts.on('-a', '--adapter [ADAPTER]', 'ActiveRecord adapter to use (default SQLite3)') do |a|
+  opts.on('-a', '--adapter ADAPTER', 'ActiveRecord adapter to use') do |a|
     options[:db][:adapter] = a
   end
 
-  opts.on('-d', '--database DATABASE', 'Name of database') do |d|
+  opts.on('-d', '--database DATABASE', 'Database name') do |d|
     options[:db][:database] = d
   end
 
@@ -49,10 +50,44 @@ optparse = OptionParser.new do |opts|
   opts.on('-i', '--include pattern1,pattern2', Array, 'Include prefixes') do |i|
     options[:include] = i
   end
+
+  opts.on('-v', '--version', "Prints gem version") do |v|
+    puts "Rmre version #{Rmre::VERSION}"
+    exit
+  end
+
+  opts.on('--dump-schema [FILE]', 'Create schema migration to FILE') do |ds_file|
+    options[:dump_schema] = ds_file
+  end
 end
 
-optparse.parse!
+begin
+  optparse.parse!
+rescue OptionParser::ParseError => pe
+  puts pe.message
+  puts optparse
+  exit
+end
+
+unless options[:db][:adapter] && options[:db][:database]
+  puts "Missing required arguments -a (--adapter) and -d (--database)"
+  puts optparse
+  exit
+end
 
 generator = Rmre::Generator.new(options[:db], options[:out_path], options[:include])
-generator.connect
-generator.create_models(generator.connection.tables)
+
+begin
+  generator.connect
+rescue Exception => e
+  puts e.message
+  exit
+end
+
+if options[:dump_schema]
+  File.open(options[:dump_schema], 'w') do |file|
+    generator.dump_schema(file)
+  end
+else
+  generator.create_models(generator.connection.tables)
+end

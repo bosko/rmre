@@ -1,6 +1,6 @@
 require "tmpdir"
 require "fileutils"
-require "active_record"
+require "rmre/active_record/schema_dumper"
 
 module Rmre
   class Generator
@@ -31,6 +31,10 @@ module Rmre
       tables.each do |table_name|
         create_model(table_name) if process?(table_name)
       end
+    end
+
+    def dump_schema(stream)
+      ActiveRecord::SchemaDumper.dump_with_fk(connection, foreign_keys, stream)
     end
     
     def create_model(table_name)
