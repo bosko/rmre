@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
-require 'optparse'
-require 'rmre'
+
+require "yaml"
+require "optparse"
+require "rmre"
 
 options = {:db => {}}
 optparse = OptionParser.new do |opts|
@@ -12,6 +14,11 @@ optparse = OptionParser.new do |opts|
     exit
   end
 
+  opts.on('-f', '--file [FILE]',
+          'If no file is given creates minimal settings YAML file; otherwise loads settings from file') do |f|
+    options[:file] = f.nil? ? true : f
+  end
+  
   opts.on('-a', '--adapter ADAPTER', 'ActiveRecord adapter to use') do |a|
     options[:db][:adapter] = a
   end
@@ -69,25 +76,37 @@ rescue OptionParser::ParseError => pe
   exit
 end
 
-unless options[:db][:adapter] && options[:db][:database]
-  puts "Missing required arguments -a (--adapter) and -d (--database)"
-  puts optparse
-  exit
-end
-
-generator = Rmre::Generator.new(options[:db], options[:out_path], options[:include])
-
-begin
-  generator.connect
-rescue Exception => e
-  puts e.message
-  exit
-end
-
-if options[:dump_schema]
-  File.open(options[:dump_schema], 'w') do |file|
-    generator.dump_schema(file)
+if options[:file] == true
+  db = {:adapter=>'adapter_name',:database=>'db_name',:username=>'user_name',:password=>'pass'}
+  options = {:db => db, :out_path => File.expand_path(File.join(Dir.tmpdir, "rmre_models"))}
+  File.open("rmre_db.yml", "w") do |file|
+    file.print options.to_yaml
   end
 else
-  generator.create_models(generator.connection.tables)
+  options = YAML.load_file(options[:file]) if options[:file] && File.exists?(options[:file])
+
+  unless options[:db][:adapter] && options[:db][:database]
+    puts "Missing required arguments -a (--adapter) and -d (--database)"
+    puts optparse
+    exit
+  end
+  
+  generator = Rmre::Generator.new(options[:db], options[:out_path], options[:include])
+
+  begin
+    generator.connect
+  rescue Exception => e
+    puts e.message
+    exit
+  end
+
+  if options[:dump_schema]
+    puts "Dumping schema to #{options[:dump_schema]}..."
+    File.open(options[:dump_schema], 'w') do |file|
+      generator.dump_schema(file)
+    end
+  else
+    puts "Generating models..."
+    generator.create_models(generator.connection.tables)
+  end
 end

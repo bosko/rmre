@@ -15,10 +15,8 @@ module ActiveRecord
 
       foreign_keys.each do |fk|
 stream.puts <<-SQL
-      execute "ALTER TABLE #{fk['from_table']}
-        ADD CONSTRAINT fk_#{fk['from_table']}_#{fk['to_table']}
-        FOREIGN KEY (#{fk['from_column']})
-        REFERENCES #{fk['to_table']}(#{fk['to_column']})"
+  execute "ALTER TABLE #{fk['from_table']} ADD CONSTRAINT fk_#{fk['from_table']}_#{fk['to_table']}
+           FOREIGN KEY (#{fk['from_column']}) REFERENCES #{fk['to_table']}(#{fk['to_column']})"
     SQL
       end
 
