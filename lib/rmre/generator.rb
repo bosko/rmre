@@ -1,5 +1,6 @@
 require "tmpdir"
 require "fileutils"
+require "erubis"
 require "rmre/active_record/schema_dumper"
 
 module Rmre
@@ -91,12 +92,10 @@ module Rmre
     end
     
     def generate_model_source(table_name, constraints)
-      src = "class #{table_name.classify} < ActiveRecord::Base\n"
-      primary_key = connection.primary_key(table_name)
-      src << "  set_primary_key :#{primary_key}\n" unless "id" == primary_key || primary_key.nil?
-      src << "  set_table_name '#{table_name}'\n" unless table_name == table_name.classify.tableize
-      src << "  #{constraints.join("\n  ")}"
-      src << "\nend\n"
+      eruby = Erubis::Eruby.new(File.read(File.join(File.expand_path("../", __FILE__), 'model.eruby')))
+      eruby.result(:table_name => table_name,
+                   :primary_key => connection.primary_key(table_name),
+                   :constraints => constraints)
     end
     
     def mysql_foreign_keys
