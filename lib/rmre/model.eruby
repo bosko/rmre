@@ -1,6 +1,6 @@
 class <%= table_name.classify %> < ActiveRecord::Base
-  set_primary_key <%= primary_key unless "id" == primary_key || primary_key.nil? %>
-  set_table_name <%= table_name unless table_name == table_name.classify.tableize %>
+  set_primary_key :<%= primary_key unless "id" == primary_key || primary_key.nil? %>
+  set_table_name <%= "'#{table_name}'" unless table_name == table_name.classify.tableize %>
   <% constraints.each do |constraint| %>
   <%= constraint %>
   <% end %>
