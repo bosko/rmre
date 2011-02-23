@@ -9,7 +9,7 @@ module Rmre
     attr_reader :output_path
 
     SETTINGS_ROOT = File.expand_path('../../../../db', __FILE__)
-    
+
     def initialize(options, out_path, include)
       @connection_options = options
       @connection = nil
@@ -19,14 +19,14 @@ module Rmre
 
     def connect
       return if @connection_options.empty?
-      
+
       ActiveRecord::Base.establish_connection(@connection_options)
       @connection = ActiveRecord::Base.connection
     end
 
     def create_models(tables)
       return unless tables.is_a? Array
-      
+
       FileUtils.mkdir_p(@output_path) if !Dir.exists?(@output_path)
 
       tables.each do |table_name|
@@ -37,7 +37,7 @@ module Rmre
     def dump_schema(stream)
       ActiveRecord::SchemaDumper.dump_with_fk(connection, foreign_keys, stream)
     end
-    
+
     def create_model(table_name)
       File.open(File.join(output_path, "#{table_name}.rb"), "w") do |file|
         constraints = []
@@ -46,14 +46,14 @@ module Rmre
           src = constraint_src(table_name, fk)
           constraints << src unless src.nil?
         end
-        
+
         file.write generate_model_source(table_name, constraints)
       end
     end
 
     def process?(table_name)
       return true if @include_prefixes.nil? || @include_prefixes.empty?
-      
+
       @include_prefixes.each do |prefix|
         return true if table_name =~ /^#{prefix}/
       end
@@ -90,14 +90,14 @@ module Rmre
       end
       src
     end
-    
+
     def generate_model_source(table_name, constraints)
       eruby = Erubis::Eruby.new(File.read(File.join(File.expand_path("../", __FILE__), 'model.eruby')))
       eruby.result(:table_name => table_name,
                    :primary_key => connection.primary_key(table_name),
                    :constraints => constraints)
     end
-    
+
     def mysql_foreign_keys
       sql = <<-SQL
 select
@@ -120,16 +120,16 @@ SELECT tc.table_name as from_table,
           ccu.table_name AS to_table,
           ccu.column_name AS to_column
      FROM information_schema.table_constraints tc
-LEFT JOIN information_schema.key_column_usage kcu
+  LEFT JOIN information_schema.key_column_usage kcu
        ON tc.constraint_catalog = kcu.constraint_catalog
       AND tc.constraint_schema = kcu.constraint_schema
       AND tc.constraint_name = kcu.constraint_name
-      
-LEFT JOIN information_schema.referential_constraints rc
+
+  LEFT JOIN information_schema.referential_constraints rc
        ON tc.constraint_catalog = rc.constraint_catalog
       AND tc.constraint_schema = rc.constraint_schema
       AND tc.constraint_name = rc.constraint_name
-LEFT JOIN information_schema.constraint_column_usage ccu
+  LEFT JOIN information_schema.constraint_column_usage ccu
        ON rc.unique_constraint_catalog = ccu.constraint_catalog
       AND rc.unique_constraint_schema = ccu.constraint_schema
       AND rc.unique_constraint_name = ccu.constraint_name
@@ -141,25 +141,25 @@ SQL
 
     def mssql_foreign_keys
       sql = <<-SQL
-SELECT C.TABLE_NAME [from_table], 
-       KCU.COLUMN_NAME [from_column], 
-       C2.TABLE_NAME [to_table], 
+SELECT C.TABLE_NAME [from_table],
+       KCU.COLUMN_NAME [from_column],
+       C2.TABLE_NAME [to_table],
        KCU2.COLUMN_NAME [to_column]
-FROM   INFORMATION_SCHEMA.TABLE_CONSTRAINTS C 
-       INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU 
-         ON C.CONSTRAINT_SCHEMA = KCU.CONSTRAINT_SCHEMA 
-            AND C.CONSTRAINT_NAME = KCU.CONSTRAINT_NAME 
-       INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC 
-         ON C.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA 
-            AND C.CONSTRAINT_NAME = RC.CONSTRAINT_NAME 
-       INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS C2 
-         ON RC.UNIQUE_CONSTRAINT_SCHEMA = C2.CONSTRAINT_SCHEMA 
-            AND RC.UNIQUE_CONSTRAINT_NAME = C2.CONSTRAINT_NAME 
-       INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 
-         ON C2.CONSTRAINT_SCHEMA = KCU2.CONSTRAINT_SCHEMA 
-            AND C2.CONSTRAINT_NAME = KCU2.CONSTRAINT_NAME 
-            AND KCU.ORDINAL_POSITION = KCU2.ORDINAL_POSITION 
-WHERE  C.CONSTRAINT_TYPE = 'FOREIGN KEY'
+FROM   INFORMATION_SCHEMA.TABLE_CONSTRAINTS C
+       INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU
+         ON C.CONSTRAINT_SCHEMA = KCU.CONSTRAINT_SCHEMA
+            AND C.CONSTRAINT_NAME = KCU.CONSTRAINT_NAME
+       INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC
+         ON C.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
+            AND C.CONSTRAINT_NAME = RC.CONSTRAINT_NAME
+       INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS C2
+         ON RC.UNIQUE_CONSTRAINT_SCHEMA = C2.CONSTRAINT_SCHEMA
+            AND RC.UNIQUE_CONSTRAINT_NAME = C2.CONSTRAINT_NAME
+       INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2
+         ON C2.CONSTRAINT_SCHEMA = KCU2.CONSTRAINT_SCHEMA
+            AND C2.CONSTRAINT_NAME = KCU2.CONSTRAINT_NAME
+            AND KCU.ORDINAL_POSITION = KCU2.ORDINAL_POSITION
+    WHERE  C.CONSTRAINT_TYPE = 'FOREIGN KEY'
 SQL
       connection.select_all(sql)
     end
@@ -169,9 +169,9 @@ SQL
       connection.tables.each do |table|
         connection.foreign_keys(table).each do |oracle_fk|
           table_fk = { 'from_table' => oracle_fk.from_table,
-            'from_column' => oracle_fk.options[:column],
+            'from_column' => oracle_fk.options[:columns][0],
             'to_table' => oracle_fk.to_table,
-            'to_column' => oracle_fk.options[:primary_key] }
+            'to_column' => oracle_fk.options[:references][0] }
           fk << table_fk
         end
       end
