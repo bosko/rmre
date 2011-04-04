@@ -3,22 +3,23 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require "yaml"
 require "optparse"
+require "erubis"
 require "rmre"
 
 options = {:db => {}}
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage: rmre -a ADAPTER -d DATABASE [options]"
-  
+
   opts.on('-h', '--help', 'Display this screen') do
     puts opts
     exit
   end
 
   opts.on('-f', '--file [FILE]',
-          'If no file is given creates minimal settings YAML file; otherwise loads settings from file') do |f|
+          'Without file name creates settings and models loading RMRE files; otherwise loads settings from file') do |f|
     options[:file] = f.nil? ? true : f
   end
-  
+
   opts.on('-a', '--adapter ADAPTER', 'ActiveRecord adapter to use') do |a|
     options[:db][:adapter] = a
   end
@@ -44,16 +45,17 @@ optparse = OptionParser.new do |opts|
   opts.on('-n', '--dsn [DSN]', 'ODBC DSN name (MS SQL only)') do |n|
     options[:db][:dsn] = n
   end
-  
+
   options[:out_path] = File.expand_path(File.join(Dir.tmpdir, "rmre_models"))
   opts.on('-o', '--out [PATH]', 'Path where models will be generated (default <TMP>/rmre_models)') do |p|
+    p.tr!(File::ALT_SEPARATOR, File::SEPARATOR) if File::ALT_SEPARATOR
     options[:out_path] = p
   end
 
   opts.on('-s', '--host [HOST]', 'IP address or name of the host') do |s|
     options[:db][:host] = s
   end
-  
+
   opts.on('-i', '--include pattern1,pattern2', Array, 'Include prefixes') do |i|
     options[:include] = i
   end
@@ -77,10 +79,21 @@ rescue OptionParser::ParseError => pe
 end
 
 if options[:file] == true
-  db = {:adapter=>'adapter_name',:database=>'db_name',:username=>'user_name',:password=>'pass'}
-  options = {:db => db, :out_path => File.expand_path(File.join(Dir.tmpdir, "rmre_models"))}
-  File.open("rmre_db.yml", "w") do |file|
+  options[:db].merge!(:adapter=>'adapter_name',:database=>'db_name') if options[:db][:adapter].nil?
+  options.delete(:file)
+  file_name = 'rmre_db'
+  file_path = File.join(options[:out_path], "#{file_name}.yml")
+  puts "Generating file #{file_path}..."
+  File.open(file_path, "w") do |file|
     file.print options.to_yaml
+  end
+
+  file_path = File.join(options[:out_path], "#{file_name}.rb")
+  puts "Generating file #{file_path}..."
+  File.open(file_path, "w") do |file|
+    eruby = Erubis::Eruby.new(File.read(File.join(File.expand_path("../../lib/rmre", __FILE__), 'load_file.eruby')))
+    file.write eruby.result(:out_path => options[:out_path],
+                            :file_name => "#{file_name}")
   end
 else
   options = YAML.load_file(options[:file]) if options[:file] && File.exists?(options[:file])
@@ -90,7 +103,7 @@ else
     puts optparse
     exit
   end
-  
+
   generator = Rmre::Generator.new(options[:db], options[:out_path], options[:include])
 
   begin

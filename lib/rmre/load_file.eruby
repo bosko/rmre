@@ -1,0 +1,14 @@
+require "yaml"
+require "active_record"
+
+<%= "dir = File.join('#{out_path}', '*.rb')" %>
+Dir.glob(dir) { |file| require file }
+
+def connect
+  <%= "settings_file = './#{file_name}.yml'" %>
+  exit unless File.exists?(settings_file)
+  settings = YAML.load_file(settings_file)
+  ActiveRecord::Base.establish_connection(settings[:db])
+  ActiveRecord::Base.connection
+end
+
