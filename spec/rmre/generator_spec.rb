@@ -10,15 +10,15 @@ module Rmre
         :out_path => '/tmp/gne-test',
         :include => ['incl1_', 'incl2_']}
     end
-    
+
     let(:generator) { Generator.new(settings[:db], settings[:out_path], settings[:include]) }
     let(:tables)    { %w(incl1_tbl1 incl1_tbl2 incl2_tbl1 user processes) }
-    
-    it "should flag table inv_plan for processing" do
+
+    it "should flag table incl1_tbl1 for processing" do
       generator.process?('incl1_tbl1').should be_true
     end
 
-    it "should not flag table shkprocesses for processing" do
+    it "should not flag table 'processes' for processing" do
       generator.process?('processes').should be_false
     end
 
@@ -33,7 +33,7 @@ module Rmre
       generator.stub_chain(:connection, :primary_key).and_return("id")
       generator.send(:generate_model_source, 'incl1_tbl1', []).should match(/set_table_name \'incl1_tbl1\'/)
     end
-    
+
     it "should create three model files" do
       generator.stub_chain(:connection, :primary_key).and_return("id")
       generator.stub(:foreign_keys).and_return([])
