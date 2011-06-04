@@ -94,6 +94,7 @@ if options[:file] == true
   file_name = 'rmre_db'
   file_path = File.join(options[:out_path], "#{file_name}.yml")
   puts "Generating file #{file_path}..."
+  FileUtils.mkdir_p options[:out_path] unless File.exist? options[:out_path]
   File.open(file_path, "w") do |file|
     file.print options.to_yaml
   end
