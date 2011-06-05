@@ -1,8 +1,8 @@
-class <%= table_name.classify %> < ActiveRecord::Base
+class <%= table_name.tableize.classify %> < ActiveRecord::Base
   <% unless "id" == primary_key || primary_key.nil? %>
   <%= "set_primary_key :#{primary_key}" %>
   <% end %>
-  <% unless table_name == table_name.classify.tableize %>
+  <% unless table_name == table_name.tableize %>
   <%= "set_table_name '#{table_name}'" %>
   <% end %>
 
