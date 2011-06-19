@@ -7,7 +7,7 @@ module Rmre
           :database => 'db',
           :username => 'user',
           :password => 'pass'},
-        :out_path => '/tmp/gne-test',
+        :out_path => File.join(Dir.tmpdir, 'gne-test'),
         :include => ['incl1_', 'incl2_']}
     end
 
