@@ -55,5 +55,20 @@ module Rmre
 
       generator.create_model("TBL_USERS")
     end
+
+    it "should set primary key if PK column is not id" do
+      file = double("model_file")
+      file.stub(:write)
+
+      connection = double("db_connection")
+      connection.stub(:primary_key).and_return("usr_id")
+      generator.stub(:connection).and_return(connection)
+
+      File.stub(:open).and_yield(file)
+      file.should_receive(:write).with(/set_primary_key :usr_id/)
+
+      generator.create_model("users")
+    end
+    
   end
 end
