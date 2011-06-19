@@ -21,7 +21,7 @@ module Rmre
     it "should not flag table 'processes' for processing" do
       generator.process?('processes').should be_false
     end
-
+    
     it "should process three tables from the passed array of tables" do
       generator.stub(:create_model)
 
@@ -39,6 +39,21 @@ module Rmre
       generator.stub(:foreign_keys).and_return([])
       generator.create_models(tables)
       Dir.glob(File.join(generator.output_path, "*.rb")).should have(3).items
+    end
+
+    it "should create prettified file names" do
+      file = double("model_file")
+      file.stub(:write)
+
+      connection = double("db_connection")
+      connection.stub(:primary_key).and_return('')
+      generator.stub(:connection).and_return(connection)
+
+      File.stub(:open).and_yield(file)
+      File.should_receive(:open).with(/tbl_user/, "w")
+      file.should_receive(:write).with(/class TblUser/)
+
+      generator.create_model("TBL_USERS")
     end
   end
 end
