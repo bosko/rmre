@@ -1,12 +1,17 @@
 class <%= table_name.tableize.classify %> < ActiveRecord::Base
-  <% unless "id" == primary_key || primary_key.nil? %>
-  <%= "set_primary_key :#{primary_key}" %>
-  <% end %>
   <% unless table_name == table_name.tableize %>
-  <%= "set_table_name '#{table_name}'" %>
+    <%= "set_table_name '#{table_name}'" -%>
+  <% end %>
+
+  <% unless "id" == primary_key || primary_key.nil? %>
+    <%= "set_primary_key :#{primary_key}" -%>
+  <% end %>
+
+  <% if has_type_column %>
+    <%= "set_inheritance_column :ruby_type" -%>
   <% end %>
 
   <% constraints.each do |constraint| %>
-  <%= constraint %>
+    <%= constraint -%>
   <% end %>
 end

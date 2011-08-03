@@ -11,7 +11,14 @@ module Rmre
         :include => ['incl1_', 'incl2_']}
     end
 
-    let(:generator) { Generator.new(settings[:db], settings[:out_path], settings[:include]) }
+    let(:generator) do |gen|
+      gen = Generator.new(settings[:db], settings[:out_path], settings[:include])
+      connection = double("db_connection")
+      connection.stub(:columns).and_return([])
+      gen.stub(:connection).and_return(connection)
+      gen
+    end
+    
     let(:tables)    { %w(incl1_tbl1 incl1_tbl2 incl2_tbl1 user processes) }
 
     it "should flag table incl1_tbl1 for processing" do
@@ -45,10 +52,8 @@ module Rmre
       file = double("model_file")
       file.stub(:write)
 
-      connection = double("db_connection")
-      connection.stub(:primary_key).and_return('')
-      generator.stub(:connection).and_return(connection)
-
+      generator.connection.stub(:primary_key).and_return('')
+      
       File.stub(:open).and_yield(file)
       File.should_receive(:open).with(/tbl_user/, "w")
       file.should_receive(:write).with(/class TblUser/)
@@ -60,15 +65,12 @@ module Rmre
       file = double("model_file")
       file.stub(:write)
 
-      connection = double("db_connection")
-      connection.stub(:primary_key).and_return("usr_id")
-      generator.stub(:connection).and_return(connection)
+      generator.connection.stub(:primary_key).and_return("usr_id")
 
       File.stub(:open).and_yield(file)
       file.should_receive(:write).with(/set_primary_key :usr_id/)
 
       generator.create_model("users")
     end
-    
   end
 end

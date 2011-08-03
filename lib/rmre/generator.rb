@@ -94,8 +94,9 @@ module Rmre
     def generate_model_source(table_name, constraints)
       eruby = Erubis::Eruby.new(File.read(File.join(File.expand_path("../", __FILE__), 'model.eruby')))
       eruby.result(:table_name => table_name,
-                   :primary_key => connection.primary_key(table_name),
-                   :constraints => constraints)
+        :primary_key => connection.primary_key(table_name),
+        :constraints => constraints,
+        :has_type_column => connection.columns(table_name).find { |col| col.name == 'type' })
     end
 
     def mysql_foreign_keys
