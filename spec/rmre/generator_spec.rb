@@ -38,7 +38,7 @@ module Rmre
 
     it "should contain set_table_name 'incl1_tbl1' in generated source" do
       generator.stub_chain(:connection, :primary_key).and_return("id")
-      generator.send(:generate_model_source, 'incl1_tbl1', []).should match(/set_table_name \'incl1_tbl1\'/)
+      generator.send(:generate_model_source, 'incl1_tbl1', []).should match(/self\.table_name = \'incl1_tbl1\'/)
     end
 
     it "should create three model files" do
@@ -68,7 +68,7 @@ module Rmre
       generator.connection.stub(:primary_key).and_return("usr_id")
 
       File.stub(:open).and_yield(file)
-      file.should_receive(:write).with(/set_primary_key :usr_id/)
+      file.should_receive(:write).with(/self\.primary_key = :usr_id/)
 
       generator.create_model("users")
     end
