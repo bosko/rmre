@@ -1,0 +1,22 @@
+Rmre is utility gem for creating Ruby on Rails models for legacy databases.
+
+Changes:
+
+=== 0.0.4 / 2012-06-07
+
+* Enhancements
+
+ * do not use deprecated methods in generated models (John Murray)
+ * 'belongs_to' method uses singular name (John Murray)
+
+=== 0.0.3 / 2012-02-19
+
+* Enhancements
+
+ * schema dump with foreign key statements
+ * creating sample settings file (-f, --file switch)
+ * generate singularized model file names
+ * various other fixes
+
+GitHub: http://github.com/bosko/rmre
+Issues: http://github.com/bosko/rmre/issues
