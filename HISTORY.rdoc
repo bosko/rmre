@@ -6,8 +6,8 @@ Changes:
 
 * Enhancements
 
- * do not use deprecated methods in generated models (John Murray)
- * 'belongs_to' method uses singular name (John Murray)
+ * do not use deprecated methods in generated models ({John Murray}[https://github.com/JohnMurray])
+ * 'belongs_to' method uses singular name ({John Murray}[https://github.com/JohnMurray])
 
 === 0.0.3 / 2012-02-19
 
