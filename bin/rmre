@@ -107,7 +107,7 @@ if options[:file] == true
                             :file_name => "#{file_name}")
   end
 else
-  options = YAML.load_file(options[:file]) if options[:file] && File.exists?(options[:file])
+  options.merge! YAML.load_file(options[:file]) if options[:file] && File.exists?(options[:file])
 
   unless options[:db][:adapter]
     puts "Missing required arguments -a (--adapter) and -d (--database)"
