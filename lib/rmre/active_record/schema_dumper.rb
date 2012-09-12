@@ -23,5 +23,13 @@ stream.puts <<-SQL
       trailer(stream)
       stream
     end
+
+    def self.dump_table(table_name, connection = ActiveRecord::Base.connection, stream=STDOUT)
+      new(connection).dump_table(table_name, stream)
+    end
+
+    def dump_table(table_name, stream)
+      table(table_name, stream)
+    end
   end
 end
