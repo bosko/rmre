@@ -21,16 +21,36 @@ EOS
     def self.copy_table(table)
       puts "Copying table #{table}"
       unless TargetDb.connection.table_exists?(table)
-        create_table(table)
+        create_table(table, SourceDb.connection.columns(table))
       end
       puts "  Copying data..."
     end
 
-    def self.create_table(table)
-      puts "  Creating table"
-      create_table_stream = StringIO.new
-      ActiveRecord::SchemaDumper.dump_table(table, SourceDb.connection, create_table_stream)
-      TargetDb.connection.send(:eval, create_table_stream.string)
+    def self.create_table(table, source_columns)
+      puts "  Creating table #{table}"
+      TargetDb.connection.create_table(table)
+      source_columns.each do |sc|
+        options = {
+          :null => sc.null,
+          :default => sc.default
+        }
+
+        col_type = Rmre::DbUtils.convert_column_type(Rmre::Migrate::TargetDb.connection.adapter_name, sc.type)
+        case col_type
+        when :decimal
+          options.merge!({
+              :limit => sc.limit,
+              :precision => sc.precision,
+              :scale => sc.scale,
+            })
+        when :string
+          options.merge!({
+              :limit => sc.limit
+            })
+        end
+
+        TargetDb.connection.add_column(table, sc.name, col_type, options)
+      end
     end
   end
 end
