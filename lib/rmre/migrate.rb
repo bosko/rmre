@@ -1,5 +1,6 @@
 require "rmre/db_utils"
 require "rmre/dynamic_db"
+require "contrib/progressbar"
 
 # conf = YAML.load_file('rmre_db.yml')
 # Rmre::Migrate.prepare(conf[:db_source], conf[:db_target])
@@ -35,14 +36,15 @@ module Rmre
     end
 
     def self.copy
-      Rmre::Source::Db.connection.tables.each do |table|
+      tables_count = Rmre::Source::Db.connection.tables.length
+      Rmre::Source::Db.connection.tables.each_with_index do |table, idx|
+        puts "Copying table #{table} (#{idx + 1}/#{tables_count})..."
         copy_table(table)
       end
     end
 
     def self.copy_table(table)
       unless Rmre::Target::Db.connection.table_exists?(table)
-        puts "Copying structure for #{table}..."
         create_table(table, Rmre::Source::Db.connection.columns(table))
       end
       copy_data(table)
@@ -82,8 +84,12 @@ module Rmre
       src_model = Rmre::Source.create_model_for(table_name)
       src_model.inheritance_column = 'ruby_type' if table_has_type_column(table_name)
       tgt_model = Rmre::Target.create_model_for(table_name)
+
+      rec_count = src_model.count
+      progress_bar = Console::ProgressBar.new(table_name, rec_count)
       src_model.all.each do |src_rec|
         tgt_model.create!(src_rec.attributes)
+        progress_bar.inc
       end
     end
   end
