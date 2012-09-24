@@ -15,12 +15,14 @@ module Rmre
     end
 
     def create_model_for(table_name)
+      model_name = table_name.classify
       module_eval <<-ruby_src, __FILE__, __LINE__ + 1
-        class #{table_name.classify} < ActiveRecord::Base
+        class #{model_name} < ActiveRecord::Base
           self.table_name = '#{table_name}'
           establish_connection(#{connection_options})
         end
-        ruby_src
+      ruby_src
+      const_get model_name
     end
   end
 end

@@ -1,3 +1,4 @@
+require "rmre/db_utils"
 require "rmre/dynamic_db"
 
 # conf = YAML.load_file('rmre_db.yml')
@@ -20,30 +21,42 @@ module Rmre
   end
 
   module Migrate
-    def self.prepare(source_db_options, target_db_options)
-      Source.connection_options = source_db_options
-      Target.connection_options = target_db_options
-      Source::Db.establish_connection(Source.connection_options)
-      Target::Db.establish_connection(Target.connection_options)
+    RAILS_COPY_MODE = 1
+    LEGACY_COPY_MODE = 2
+    @copy_mode = RAILS_COPY_MODE
+
+    def self.prepare(source_db_options, target_db_options, mode = Rmre::Migrate::RAILS_COPY_MODE)
+      @copy_mode = mode
+
+      Rmre::Source.connection_options = source_db_options
+      Rmre::Target.connection_options = target_db_options
+      Rmre::Source::Db.establish_connection(Rmre::Source.connection_options)
+      Rmre::Target::Db.establish_connection(Rmre::Target.connection_options)
     end
 
-    def self.copy_table(table)
-      unless Target::Db.connection.table_exists?(table)
-        puts "Copying structure for #{table}..."
-        create_table(table, Source::Db.connection.columns(table))
-        copy_data(table)
+    def self.copy
+      Rmre::Source::Db.connection.tables.each do |table|
+        copy_table(table)
       end
     end
 
+    def self.copy_table(table)
+      unless Rmre::Target::Db.connection.table_exists?(table)
+        puts "Copying structure for #{table}..."
+        create_table(table, Rmre::Source::Db.connection.columns(table))
+      end
+      copy_data(table)
+    end
+
     def self.create_table(table, source_columns)
-      Target::Db.connection.create_table(table)
-      source_columns.each do |sc|
+      Rmre::Target::Db.connection.create_table(table)
+      source_columns.reject {|col| col.name.downcase == 'id' && @copy_mode == RAILS_COPY_MODE }.each do |sc|
         options = {
           :null => sc.null,
           :default => sc.default
         }
 
-        col_type = Rmre::DbUtils.convert_column_type(Rmre::Migrate::TargetDb.connection.adapter_name, sc.type)
+        col_type = Rmre::DbUtils.convert_column_type(Rmre::Target::Db.connection.adapter_name, sc.type)
         case col_type
         when :decimal
           options.merge!({
@@ -57,11 +70,21 @@ module Rmre
             })
         end
 
-        Target::Db.connection.add_column(table, sc.name, col_type, options)
+        Rmre::Target::Db.connection.add_column(table, sc.name, col_type, options)
       end
     end
 
+    def self.table_has_type_column(table)
+      Rmre::Source::Db.connection.columns(table).find {|col| col.name == 'type'}
+    end
+
     def self.copy_data(table_name)
+      src_model = Rmre::Source.create_model_for(table_name)
+      src_model.inheritance_column = 'ruby_type' if table_has_type_column(table_name)
+      tgt_model = Rmre::Target.create_model_for(table_name)
+      src_model.all.each do |src_rec|
+        tgt_model.create!(src_rec.attributes)
+      end
     end
   end
 end
