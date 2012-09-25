@@ -22,12 +22,10 @@ module Rmre
   end
 
   module Migrate
-    RAILS_COPY_MODE = 1
-    LEGACY_COPY_MODE = 2
-    @copy_mode = RAILS_COPY_MODE
+    @rails_copy_mode = true
 
-    def self.prepare(source_db_options, target_db_options, mode = Rmre::Migrate::RAILS_COPY_MODE)
-      @copy_mode = mode
+    def self.prepare(source_db_options, target_db_options, rails_copy_mode = true)
+      @rails_copy_mode = rails_copy_mode
 
       Rmre::Source.connection_options = source_db_options
       Rmre::Target.connection_options = target_db_options
@@ -51,8 +49,8 @@ module Rmre
     end
 
     def self.create_table(table, source_columns)
-      Rmre::Target::Db.connection.create_table(table)
-      source_columns.reject {|col| col.name.downcase == 'id' && @copy_mode == RAILS_COPY_MODE }.each do |sc|
+      Rmre::Target::Db.connection.create_table(table, :id => @rails_copy_mode)
+      source_columns.reject {|col| col.name.downcase == 'id' && @rails_copy_mode }.each do |sc|
         options = {
           :null => sc.null,
           :default => sc.default
