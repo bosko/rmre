@@ -36,7 +36,7 @@ module Rmre
 
     def self.copy(force = false)
       tables_count = Rmre::Source::Db.connection.tables.length
-      Rmre::Source::Db.connection.tables.each_with_index do |table, idx|
+      Rmre::Source::Db.connection.tables.sort.each_with_index do |table, idx|
         puts "Copying table #{table} (#{idx + 1}/#{tables_count})..."
         copy_table(table)
       end
