@@ -2,7 +2,8 @@ module Rmre
   module DbUtils
     COLUMN_CONVERSIONS = {
       "Mysql2" => {
-        :raw => :binary
+        :raw => :binary,
+        "LONG" => :text
       }
     }
 
