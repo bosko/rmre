@@ -23,6 +23,7 @@ module Rmre
 
   module Migrate
     @rails_copy_mode = true
+    @force_table_create = false # If set to true will call AR create_table with force (table will be dropped if exists)
 
     def self.prepare(source_db_options, target_db_options, rails_copy_mode = true)
       @rails_copy_mode = rails_copy_mode
@@ -33,7 +34,7 @@ module Rmre
       Rmre::Target::Db.establish_connection(Rmre::Target.connection_options)
     end
 
-    def self.copy
+    def self.copy(force = false)
       tables_count = Rmre::Source::Db.connection.tables.length
       Rmre::Source::Db.connection.tables.each_with_index do |table, idx|
         puts "Copying table #{table} (#{idx + 1}/#{tables_count})..."
@@ -49,28 +50,29 @@ module Rmre
     end
 
     def self.create_table(table, source_columns)
-      Rmre::Target::Db.connection.create_table(table, :id => @rails_copy_mode)
-      source_columns.reject {|col| col.name.downcase == 'id' && @rails_copy_mode }.each do |sc|
-        options = {
-          :null => sc.null,
-          :default => sc.default
-        }
+      Rmre::Target::Db.connection.create_table(table, :id => @rails_copy_mode, :force => @force_table_create) do |t|
+        source_columns.reject {|col| col.name.downcase == 'id' && @rails_copy_mode }.each do |sc|
+          options = {
+            :null => sc.null,
+            :default => sc.default
+          }
 
-        col_type = Rmre::DbUtils.convert_column_type(Rmre::Target::Db.connection.adapter_name, sc.type)
-        case col_type
-        when :decimal
-          options.merge!({
-              :limit => sc.limit,
-              :precision => sc.precision,
-              :scale => sc.scale,
-            })
-        when :string
-          options.merge!({
-              :limit => sc.limit
-            })
+          col_type = Rmre::DbUtils.convert_column_type(Rmre::Target::Db.connection.adapter_name, sc.type)
+          case col_type
+          when :decimal
+            options.merge!({
+                :limit => sc.limit,
+                :precision => sc.precision,
+                :scale => sc.scale,
+              })
+          when :string
+            options.merge!({
+                :limit => sc.limit
+              })
+          end
+
+          t.column(sc.name, col_type, options)
         end
-
-        Rmre::Target::Db.connection.add_column(table, sc.name, col_type, options)
       end
     end
 
@@ -84,9 +86,14 @@ module Rmre
       tgt_model = Rmre::Target.create_model_for(table_name)
 
       rec_count = src_model.count
+      copy_options = {}
+      # If we are copying legacy databases and table has column 'type'
+      # we must skip protection because ActiveRecord::AttributeAssignment::assign_attributes
+      # will skip it and later that value for that column will be set to nil.
+      copy_options[:without_protection] = (!@rails_copy_mode && table_has_type_column(table_name))
       progress_bar = Console::ProgressBar.new(table_name, rec_count)
       src_model.all.each do |src_rec|
-        tgt_model.create!(src_rec.attributes)
+        tgt_model.create!(src_rec.attributes, copy_options)
         progress_bar.inc
       end
     end
