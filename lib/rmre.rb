@@ -1,3 +1,3 @@
 require 'rmre/generator'
-require "rmre/migrate"
+require "rmre/migrator"
 require 'rmre/version'
