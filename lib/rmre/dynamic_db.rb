@@ -17,7 +17,7 @@ module Rmre
     def create_model_for(table_name)
       model_name = table_name.classify
       module_eval <<-ruby_src, __FILE__, __LINE__ + 1
-        class #{model_name} < ActiveRecord::Base
+        class #{model_name} < Db
           self.table_name = '#{table_name}'
           establish_connection(#{connection_options})
         end

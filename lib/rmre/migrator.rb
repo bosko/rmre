@@ -2,15 +2,19 @@ require "rmre/db_utils"
 require "rmre/dynamic_db"
 require "contrib/progressbar"
 
-# conf = YAML.load_file('rmre_db.yml')
-# mig = Rmre::Migrator.new(conf[:db_source], conf[:db_target])
+# $conf = YAML.load_file('rmre_db.yml')
+# mig = Rmre::Migrator.new($conf[:db_detelinara], $conf[:db_target])
 # tables = Rmre::Source::Db.connection.tables
 # tables.each {|tbl| Rmre::Migrator.copy_table(tbl)}
+# Problem with SQL Server in lib/arel/visitors/sqlserver.rbL33
+# if unless part is commented out it is working, otherwise ConnectionNotEstablished
+# rised
 module Rmre
   module Source
     include DynamicDb
 
     class Db < ActiveRecord::Base
+      self.abstract_class = true
     end
   end
 
@@ -18,6 +22,7 @@ module Rmre
     include DynamicDb
 
     class Db < ActiveRecord::Base
+      self.abstract_class = true
     end
   end
 
@@ -32,6 +37,7 @@ module Rmre
       Rmre::Target.connection_options = target_db_options
       Rmre::Source::Db.establish_connection(Rmre::Source.connection_options)
       Rmre::Target::Db.establish_connection(Rmre::Target.connection_options)
+      #ActiveRecord::ConnectionAdapters::SQLServerAdapter.lowercase_schema_reflection = true
     end
 
     def copy(force = false)
