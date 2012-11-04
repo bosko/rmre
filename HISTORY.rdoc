@@ -2,6 +2,12 @@ Rmre is utility gem for creating Ruby on Rails models for legacy databases.
 
 Changes:
 
+=== 0.0.5 / 2012-11-04
+
+* Enhancements
+
+  * Drop explicit erubis dependency which prevented rmre usage along with newest Rails versions
+
 === 0.0.4 / 2012-06-07
 
 * Enhancements
