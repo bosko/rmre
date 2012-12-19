@@ -1,4 +1,5 @@
 *.gem
 tmp
-vendor/bundle
 .bundle
+vendor/
+.projectile
