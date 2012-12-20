@@ -23,9 +23,9 @@ module Rmre
     def initialize(source_db_options, target_db_options, options = {})
       # If set to true will call AR create_table with force (table will be dropped if exists)
       @force_table_create = false
-      @rails_copy_mode = options[:rails_copy_mode] || true
-      @skip_existing_tables = options[:skip_existing] || false
-      @verbose = options[:verbose] || false
+      @rails_copy_mode = options[:rails_copy_mode]
+      @skip_existing_tables = options[:skip_existing]
+      @verbose = options[:verbose]
 
       Rmre::Source.connection_options = source_db_options
       Rmre::Target.connection_options = target_db_options
