@@ -2,13 +2,6 @@ require "rmre/db_utils"
 require "rmre/dynamic_db"
 require "contrib/progressbar"
 
-# $conf = YAML.load_file('rmre_db.yml')
-# mig = Rmre::Migrator.new($conf[:db_detelinara], $conf[:db_target])
-# tables = Rmre::Source::Db.connection.tables
-# tables.each {|tbl| Rmre::Migrator.copy_table(tbl)}
-# Problem with SQL Server in lib/arel/visitors/sqlserver.rbL33
-# if unless part is commented out it is working, otherwise ConnectionNotEstablished
-# rised
 module Rmre
   module Source
     include DynamicDb
@@ -27,12 +20,12 @@ module Rmre
   end
 
   class Migrator
-
-    def initialize(source_db_options, target_db_options, rails_copy_mode = true, skip_existing = false)
+    def initialize(source_db_options, target_db_options, options = {})
       # If set to true will call AR create_table with force (table will be dropped if exists)
       @force_table_create = false
-      @rails_copy_mode = rails_copy_mode
-      @skip_existing_tables = skip_existing
+      @rails_copy_mode = options[:rails_copy_mode] || true
+      @skip_existing_tables = options[:skip_existing] || false
+      @verbose = options[:verbose] || false
 
       Rmre::Source.connection_options = source_db_options
       Rmre::Target.connection_options = target_db_options
@@ -45,14 +38,14 @@ module Rmre
       @force_table_create = force
       tables_count = Rmre::Source::Db.connection.tables.length
       Rmre::Source::Db.connection.tables.sort.each_with_index do |table, idx|
-        puts "Copying table #{table} (#{idx + 1}/#{tables_count})..."
+        info "Copying table #{table} (#{idx + 1}/#{tables_count})..."
         copy_table(table)
       end
     end
 
     def copy_table(table)
       if @skip_existing_tables && Rmre::Target::Db.connection.table_exists?(table)
-        puts "Skipping"
+        info "Skipping"
         return
       end
 
@@ -112,11 +105,17 @@ module Rmre
       # will skip it and later value for that column will be set to nil. Similar thing
       # will happend for 'id' column if we are not in Rails copy mode
       copy_options[:without_protection] = (!@rails_copy_mode || table_has_type_column(table_name))
-      progress_bar = Console::ProgressBar.new(table_name, rec_count)
+      progress_bar = Console::ProgressBar.new(table_name, rec_count) if @verbose
       src_model.all.each do |src_rec|
         tgt_model.create!(src_rec.attributes, copy_options)
-        progress_bar.inc
+        progress_bar.inc if @verbose
       end
+    end
+
+    private
+
+    def info(msg)
+      puts msg if @verbose
     end
   end
 end
