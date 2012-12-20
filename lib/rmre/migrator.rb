@@ -31,10 +31,19 @@ module Rmre
       Rmre::Target.connection_options = target_db_options
       Rmre::Source::Db.establish_connection(Rmre::Source.connection_options)
       Rmre::Target::Db.establish_connection(Rmre::Target.connection_options)
-      #ActiveRecord::ConnectionAdapters::SQLServerAdapter.lowercase_schema_reflection = true
     end
 
+    # Before we start copying we call block if it is given so some additional options
+    # can be set. For example MS SQL adapter has option to use lowercase names for
+    # all entities. We can set this options in a following way:
+    #
+    # mig = Migrator.new(..)
+    # mig.copy(true) do
+    #   ActiveRecord::ConnectionAdapters::SQLServerAdapter.lowercase_schema_reflection = true
+    # end
     def copy(force = false)
+      yield if block_given?
+
       @force_table_create = force
       tables_count = Rmre::Source::Db.connection.tables.length
       Rmre::Source::Db.connection.tables.sort.each_with_index do |table, idx|
