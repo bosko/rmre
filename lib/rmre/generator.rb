@@ -70,6 +70,7 @@ module Rmre
       fk = []
       case @connection_options[:adapter]
       when 'mysql'
+      when 'mysql2'
         fk = mysql_foreign_keys
       when 'postgresql'
         fk = psql_foreign_keys
