@@ -108,15 +108,11 @@ module Rmre
       tgt_model = Rmre::Target.create_model_for(table_name)
 
       rec_count = src_model.count
-      copy_options = {}
-      # If we are copying legacy databases or table has column 'type'
-      # we must skip protection because ActiveRecord::AttributeAssignment::assign_attributes
-      # will skip it and later value for that column will be set to nil. Similar thing
-      # will happend for 'id' column if we are not in Rails copy mode
-      copy_options[:without_protection] = (!@rails_copy_mode || table_has_type_column(table_name))
+      # We will always copy attributes without protection because we
+      # are the ones initiating DB copy (no need to preform additional checks)
       progress_bar = Console::ProgressBar.new(table_name, rec_count) if @verbose
       src_model.all.each do |src_rec|
-        tgt_model.create!(src_rec.attributes, copy_options)
+        tgt_model.create!(src_rec.attributes, :without_protection => true)
         progress_bar.inc if @verbose
       end
     end
