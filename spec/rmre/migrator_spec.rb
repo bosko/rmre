@@ -68,6 +68,7 @@ module Rmre
       before(:each) do
         src_connection.stub(:tables).and_return %w{parent_table child_table}
         src_connection.stub!(:columns).and_return([id_column, name_column])
+        src_connection.stub!(:primary_key).and_return("id")
 
         @migrator = Migrator.new(src_db_opts, tgt_db_opts)
         @migrator.stub!(:copy_data)
@@ -114,8 +115,9 @@ module Rmre
 
       context "Rails copy mode" do
         before(:each) do
-          @migrator = Migrator.new(src_db_opts, tgt_db_opts, {:rails_copy_mode => true})
-          tgt_connection.should_receive(:adapter_name).and_return("fake adapter")
+          @migrator = Migrator.new(src_db_opts, tgt_db_opts)
+          src_connection.stub!(:primary_key).and_return("id")
+          tgt_connection.stub!(:adapter_name).and_return("fake adapter")
         end
 
         it "does not explicitely create ID column" do
@@ -136,18 +138,21 @@ module Rmre
       context "non-Rails copy mode" do
         before(:each) do
           @migrator = Migrator.new(src_db_opts, tgt_db_opts, {:rails_copy_mode => false})
-          tgt_connection.should_receive(:adapter_name).exactly(2).times.and_return("fake adapter")
+          tgt_connection.stub!(:adapter_name).times.and_return("fake adapter")
+          src_connection.stub!(:primary_key).and_return("primaryIdColumn")
         end
 
         it "explicitely creates ID column" do
-          tgt_connection.should_receive(:create_table).with("parent", {:id => false, :force => false}).
+          tgt_connection.should_receive(:create_table).with("parent",
+            {:id => true, :force => false, :primary_key => "primaryIdColumn" }).
             and_yield(table)
           table.should_receive(:column).with("id", anything(), anything())
           @migrator.create_table("parent", @source_columns)
         end
 
         it "creates other columns too" do
-          tgt_connection.should_receive(:create_table).with("parent", {:id => false, :force => false}).
+          tgt_connection.should_receive(:create_table).with("parent",
+            {:id => true, :force => false, :primary_key => "primaryIdColumn"}).
             and_yield(table)
           table.should_receive(:column).with("name", anything(), anything())
           @migrator.create_table("parent", @source_columns)

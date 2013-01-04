@@ -23,7 +23,6 @@ module Rmre
     def initialize(source_db_options, target_db_options, options = {})
       # If set to true will call AR create_table with force (table will be dropped if exists)
       @force_table_create = false
-      @rails_copy_mode = options[:rails_copy_mode]
       @skip_existing_tables = options[:skip_existing]
       @verbose = options[:verbose]
 
@@ -65,9 +64,16 @@ module Rmre
     end
 
     def create_table(table, source_columns)
-      opts = {:id => @rails_copy_mode, :force => @force_table_create}
+      primary_key = Rmre::Source::Db.connection.primary_key(table)
+
+      # Create primary key if source table has primary key
+      opts = { :id => !primary_key.nil?, :force => @force_table_create }
+      # If primary key is not 'id' then set option to create proper primary key
+      opts[:primary_key] = primary_key unless primary_key == "id"
+
       Rmre::Target::Db.connection.create_table(table, opts) do |t|
-        source_columns.reject {|col| col.name.downcase == 'id' && @rails_copy_mode }.each do |sc|
+        # Skip 'id' column if it is already created as primary key
+        source_columns.reject {|col| col.name == 'id' && opts[:id] && opts[:primary_key].nil? }.each do |sc|
           options = {
             :null => sc.null,
             :default => sc.default
