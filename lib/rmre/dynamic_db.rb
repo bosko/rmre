@@ -14,7 +14,7 @@ module Rmre
       @connection_options = v
     end
 
-    def create_model_for(table_name)
+    def create_model_for(table_name, primary_key_name)
       model_name = table_name.classify
       module_eval <<-ruby_src, __FILE__, __LINE__ + 1
         class #{model_name} < Db
@@ -22,7 +22,9 @@ module Rmre
           establish_connection(#{connection_options})
         end
       ruby_src
-      const_get model_name
+      klass = const_get model_name
+      klass.primary_key = primary_key_name if primary_key_name && primary_key_name != 'id'
+      klass
     end
   end
 end

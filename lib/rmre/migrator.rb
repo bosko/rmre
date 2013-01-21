@@ -109,9 +109,11 @@ module Rmre
     end
 
     def copy_data(table_name)
-      src_model = Rmre::Source.create_model_for(table_name)
+      primary_key = Rmre::Source::Db.connection.primary_key(table_name)
+
+      src_model = Rmre::Source.create_model_for(table_name, primary_key)
       src_model.inheritance_column = 'ruby_type' if table_has_type_column(table_name)
-      tgt_model = Rmre::Target.create_model_for(table_name)
+      tgt_model = Rmre::Target.create_model_for(table_name, primary_key)
 
       rec_count = src_model.count
       # We will always copy attributes without protection because we
