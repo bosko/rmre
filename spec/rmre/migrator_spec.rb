@@ -2,11 +2,11 @@ require "spec_helper"
 
 module Rmre
   describe Migrator do
-    let (:src_connection) do |src_con|
+    let(:src_connection) do |src_con|
       src_con = double("source_connection")
     end
 
-    let (:tgt_connection) do |tgt_con|
+    let(:tgt_connection) do |tgt_con|
       tgt_con = double("target_connection")
     end
 
@@ -53,8 +53,8 @@ module Rmre
     context "initialization" do
       it "stores connection options in source and target modules" do
         Migrator.new(src_db_opts, tgt_db_opts)
-        Source.connection_options.should == src_db_opts
-        Target.connection_options.should == tgt_db_opts
+        Source.connection_options.should be_eql(src_db_opts)
+        Target.connection_options.should be_eql(tgt_db_opts)
       end
 
       it "passes connection options to source and target connections" do

@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "activerecord", ">= 3.0.0"
   s.add_dependency "erubis"
+  s.add_development_dependency "rake"
   s.add_development_dependency "rspec"
 
   s.files              = `git ls-files`.split("\n")
