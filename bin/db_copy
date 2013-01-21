@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require "yaml"
+require "optparse"
+require "rmre"
+
+options = {verbose: false, force: false}
+sample_cfg = {:source => '<Source DB connection settings>', :target => '<Target DB connection settings>'}
+
+optparse = OptionParser.new do |opts|
+  opts.banner = "Usage: db_copy -f CONFIGURATION_FILE"
+
+  opts.on('-h', '--help', 'Display this screen') do
+    puts opts
+    puts "Format of configuration file:\n#{sample_cfg.to_yaml}"
+    exit
+  end
+
+  opts.on('-f', '--file CONFIGURATION_FILE',
+          'File with source and target DB connection settings') do |f|
+    options[:file] = f
+  end
+
+  opts.on('-v', '--verbose',
+    'Verbose mode (show progress)') do |v|
+    options[:verbose] = true
+  end
+
+  opts.on('-o', '--force',
+    'Force creating tables in target database') do |o|
+    options[:force] = true
+  end
+end
+
+begin
+  optparse.parse!
+rescue OptionParser::ParseError => pe
+  puts pe.message
+  puts optparse
+  exit
+end
+
+options.merge! YAML.load_file(options[:file]) if options[:file] && File.exists?(options[:file])
+
+unless options[:source] && options[:target]
+  puts "Missing configurations for source and target database"
+  puts optparse
+  puts "Format of configuration file:\n#{sample_cfg.to_yaml}"
+  exit
+end
+
+mig = Rmre::Migrator.new(options[:source], conf[:target], :verbose => options[:verbose])
+
+begin
+  mig.copy(options[:force])
+rescue Exception => e
+  puts e.message
+  exit
+end
