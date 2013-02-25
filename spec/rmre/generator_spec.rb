@@ -61,16 +61,36 @@ module Rmre
       generator.create_model("TBL_USERS")
     end
 
-    it "should set primary key if PK column is not id" do
-      file = double("model_file")
-      file.stub(:write)
+    context 'with non standard keys' do
+      before(:each) do
+        @file = double('model_file')
+        @file.stub(:write)
+      end
 
-      generator.connection.stub(:primary_key).and_return("usr_id")
+      it "should set primary key if PK column is not id" do
+        generator.connection.stub(:primary_key).and_return('usr_id')
 
-      File.stub(:open).and_yield(file)
-      file.should_receive(:write).with(/self\.primary_key = :usr_id/)
+        File.stub(:open).and_yield(@file)
+        @file.should_receive(:write).with(/self\.primary_key = :usr_id/)
 
-      generator.create_model("users")
+        generator.create_model('users')
+      end
+
+      it "should set foreign key if FK column is not id" do
+        generator.connection.stub(:primary_key).and_return('pst_id')
+        generator.stub(:foreign_keys).and_return([
+          { 'from_table' => 'posts',
+            'from_column' => 'pst_id',
+            'to_table'=>'user',
+            'to_column'=>'user_id'}
+            ])
+
+        File.stub(:open).and_yield(@file)
+        @file.should_receive(:write).with(/:foreign_key => :pst_id/)
+
+        generator.create_model('posts')
+      end
     end
+
   end
 end
