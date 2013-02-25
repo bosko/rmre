@@ -6,7 +6,7 @@ class <%= table_name.tableize.classify %> < ActiveRecord::Base
   <% unless "id" == primary_key || primary_key.nil? %>
     <%= "self.primary_key = :#{primary_key}" -%>
   <% end %>
-
+  
   <% if has_type_column %>
     <%= "self.inheritance_column = :ruby_type" -%>
   <% end %>
