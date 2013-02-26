@@ -88,6 +88,9 @@ module Rmre
         src = "belongs_to :#{fk['to_table'].downcase.singularize}, :class_name => '#{fk['to_table'].tableize.classify}', :foreign_key => :#{fk['from_column']}"
       elsif fk['to_table'] == table_name
         src = "has_many :#{fk['from_table'].downcase.pluralize}, :class_name => '#{fk['from_table'].tableize.classify}'"
+        if connection.primary_key(table_name) == fk['from_column']
+          src +=  ", :foreign_key => :#{fk['from_column']}"
+        end
       end
       src
     end
