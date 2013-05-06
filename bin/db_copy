@@ -50,7 +50,7 @@ unless options[:source] && options[:target]
   exit
 end
 
-mig = Rmre::Migrator.new(options[:source], conf[:target], :verbose => options[:verbose])
+mig = Rmre::Migrator.new(options[:source], options[:target], :verbose => options[:verbose])
 
 begin
   mig.copy(options[:force])
