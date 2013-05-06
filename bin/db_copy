@@ -50,7 +50,14 @@ unless options[:source] && options[:target]
   exit
 end
 
-mig = Rmre::Migrator.new(options[:source], options[:target], :verbose => options[:verbose])
+mig = Rmre::Migrator.new(options[:source],
+  options[:target],
+  verbose: options[:verbose],
+  skip_existing: options[:skip_existing])
+mig.before_copy = lambda { |table_name|
+  return false if options[:skip].include?(table_name)
+  true
+}
 
 begin
   mig.copy(options[:force])

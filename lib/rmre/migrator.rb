@@ -20,11 +20,14 @@ module Rmre
   end
 
   class Migrator
+    attr_accessor :before_copy
+
     def initialize(source_db_options, target_db_options, options = {})
       # If set to true will call AR create_table with force (table will be dropped if exists)
       @force_table_create = false
       @skip_existing_tables = options[:skip_existing]
       @verbose = options[:verbose]
+      @before_copy = nil
 
       Rmre::Source.connection_options = source_db_options
       Rmre::Target.connection_options = target_db_options
@@ -53,8 +56,12 @@ module Rmre
 
     def copy_table(table)
       if @skip_existing_tables && Rmre::Target::Db.connection.table_exists?(table)
-        info "Skipping"
+        info "Skipping #{table}"
         return
+      end
+
+      if before_copy && before_copy.is_a?(Proc)
+        return unless before_copy.call(table)
       end
 
       if !Rmre::Target::Db.connection.table_exists?(table) || @force_table_create

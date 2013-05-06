@@ -91,6 +91,21 @@ module Rmre
         tgt_connection.should_receive(:create_table).exactly(2).times
         @migrator.copy(true)
       end
+
+      context "with before_copy filter" do
+        before(:each) do
+          @migrator.before_copy = lambda { |table_name| 
+              return false if table_name == "child_table"
+              true
+            }
+        end
+
+        it "does not copy table if before copy filter returns false" do
+          tgt_connection.should_receive(:table_exists?).with("parent_table").and_return(false)
+          tgt_connection.should_receive(:create_table).once
+          @migrator.copy
+        end
+      end
     end
 
     context "copying tables with 'skip existing' turned on" do
