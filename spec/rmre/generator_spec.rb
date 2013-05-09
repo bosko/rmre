@@ -18,7 +18,7 @@ module Rmre
       gen.stub(:connection).and_return(connection)
       gen
     end
-    
+
     let(:tables)    { %w(incl1_tbl1 incl1_tbl2 incl2_tbl1 user processes) }
 
     it "should flag table incl1_tbl1 for processing" do
@@ -28,7 +28,7 @@ module Rmre
     it "should not flag table 'processes' for processing" do
       generator.process?('processes').should be_false
     end
-    
+
     it "should process three tables from the passed array of tables" do
       generator.stub(:create_model)
 
@@ -53,7 +53,7 @@ module Rmre
       file.stub(:write)
 
       generator.connection.stub(:primary_key).and_return('')
-      
+
       File.stub(:open).and_yield(file)
       File.should_receive(:open).with(/tbl_user/, "w")
       file.should_receive(:write).with(/class TblUser/)
