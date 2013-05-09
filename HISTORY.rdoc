@@ -2,7 +2,13 @@ Rmre is utility gem for creating Ruby on Rails models for legacy databases.
 
 Changes:
 
-=== 0.0.6 / 2013-xx-xx
+=== 0.0.7 / 2013-05-09
+
+* Fixes
+
+  * Fixed type on HISTORY.rdoc file
+
+=== 0.0.6 / 2013-05-09
 
 * Enhancements
 
