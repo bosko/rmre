@@ -16,7 +16,7 @@ Rmre gem is on the Rubygems and you can install it with
 
 Rmre is very simple to use:
 
-  rmre -a mysql -d my_database -u my_username -p my_password -o /path/where/models/will/be/created
+  rmre -a mysql2 -d my_database -u my_username -p my_password -o /path/where/models/will/be/created
 
 That's all! Of course there is standard help which you can print at any time:
 
