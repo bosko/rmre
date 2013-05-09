@@ -8,11 +8,13 @@ module Rmre
           :username => 'user',
           :password => 'pass'},
         :out_path => File.join(Dir.tmpdir, 'gne-test'),
-        :include => ['incl1_', 'incl2_']}
+        :include => ['incl1_', 'incl2_'],
+        :inflections => [{plural: ["(.*)_des$", '\1_des'], singular: ["(.*)_des$", '\1_des']}]
+      }
     end
 
     let(:generator) do |gen|
-      gen = Generator.new(settings[:db], settings[:out_path], settings[:include])
+      gen = Generator.new(settings[:db], settings[:out_path], settings[:include], settings[:inflections])
       connection = double("db_connection")
       connection.stub(:columns).and_return([])
       gen.stub(:connection).and_return(connection)
@@ -92,5 +94,19 @@ module Rmre
       end
     end
 
+    context 'irregular plural table names' do
+      it "should create correct file and class names" do
+        file = double("model_file")
+        file.stub(:write)
+
+        generator.connection.stub(:primary_key).and_return('')
+
+        File.stub(:open).and_yield(file)
+        File.should_receive(:open).with(/status_des/, "w")
+        file.should_receive(:write).with(/class StatusDes/)
+
+        generator.create_model("status_des")
+      end
+    end
   end
 end

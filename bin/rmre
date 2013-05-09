@@ -115,7 +115,7 @@ else
     exit
   end
 
-  generator = Rmre::Generator.new(options[:db], options[:out_path], options[:include])
+  generator = Rmre::Generator.new(options[:db], options[:out_path], options[:include], options[:inflections])
 
   begin
     generator.connect

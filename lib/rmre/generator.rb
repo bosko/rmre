@@ -10,11 +10,17 @@ module Rmre
 
     SETTINGS_ROOT = File.expand_path('../../../../db', __FILE__)
 
-    def initialize(options, out_path, include)
+    def initialize(options, out_path, include, custom_inflections)
       @connection_options = options
       @connection = nil
       @output_path = out_path
       @include_prefixes = include
+      ActiveSupport::Inflector.inflections do |inflect|
+        custom_inflections.each do |ci|
+          inflect.plural(/#{ci[:plural].first}/, ci[:plural].second)
+          inflect.singular(/#{ci[:singular].first}/, ci[:singular].second)
+        end if custom_inflections.is_a? Array
+      end
     end
 
     def connect
