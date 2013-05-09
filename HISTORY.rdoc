@@ -2,6 +2,15 @@ Rmre is utility gem for creating Ruby on Rails models for legacy databases.
 
 Changes:
 
+=== 0.0.6 / 2013-xx-xx
+
+* Enhancements
+
+  * Added support for mysql2 gem with foreign keys ({Daniel Garajau}[https://github.com/kriansa])
+  * Added support for non-standard foreign key names in has_many relationship ({Gui Weinmann}[https://github.com/alphabet])
+  * Changed readme file to use mysql2 gem in samples ({Ketan Deshmukh}[https://github.com/ketan21])
+  * Experimental support for copying databases through db_copy binary or by using Rmre::Migrator class
+
 === 0.0.5 / 2012-11-04
 
 * Enhancements

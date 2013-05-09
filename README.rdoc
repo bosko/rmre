@@ -8,7 +8,7 @@ sets models relationships on a basic level through belongs_to and has_many decla
 
 = Installation
 
-Rmre gem is on the Rubygems and you can install it with
+Rmre can be installed with
 
   gem install rmre
 
@@ -62,6 +62,83 @@ with create models only for tables names with prefixes ec_ or vi_.
 If you want to try *Rmre* and you do not have sample database you can use
 _Sakila_ at http://dev.mysql.com/doc/sakila/en/sakila.html#sakila-installation for MySQL and
 _Pagila_ at http://pgfoundry.org/projects/dbsamples for PostgreSQL.
+
+= Copying databases
+
+Rmre gem has built-in support for copying databases (structure and data). This feature is
+currently experimental.
+
+During copy, Rmre will create primary keys on target tables. Since Rmre uses ActiveRecord,
+composite primary keys are not supported.
+
+Copying structure between different RDBMS can be tricky due to different data types.
+Some adapters do not convert all types to Rails value. Example is oracle_enhanced adapter
+which for 'LONG' column type sets column's type to nil but keeps sql_type as 'LONG'. Rmre
+handles these cases through Rmre::DbUtils module. Currently it properly converts Oracle's
++raw+ and +LONG+ types to MySQL's +binary+ and +text+. Support for more conversions will
+be added (if I find or get info about needed conversions). However if you write your own
+script and do not use +db_copy+ runner you can set additional conversion rules by adding
+values to Rmre::DbUtils::COLUMN_CONVERSIONS hash.
+
+Keys in this hash are target sdapter names and values are hashes with source column type
+as key and target column type as value:
+
+  COLUMN_CONVERSIONS = {
+      "Mysql2" => {
+        :raw => :binary,
+        "LONG" => :text
+      }
+    }
+
+In order to copy one database to another RDBMS you must start db_copy with +-f+ option
+and with path to YAML configuration file. Full sample of configuration file is:
+
+  :source:
+    adapter: sqlserver
+    mode: dblib
+    dataserver:
+    host: localhost
+    port: 1433
+    database: source_db
+    username: source_username
+    password: source_pass
+    timeout: 5000
+  :target:
+    adapter: mysql2
+    encoding: utf8
+    reconnect: false
+    database: target_db
+    pool: 5
+    username: target_username
+    password: target_pass
+    host: localhost
+  :verbose: true
+  :force: true
+  :skip_existing: false
+  :skip:
+    - do_not_copy_table_1
+    - do_not_copy_table_2
+
+Source and target options are standard Rails configurations for source and target databases.
+Parameter +:verbose+ is optional and can be omitted. If set to try will db_copy will pring out
+progress during copy. This parameter can be set also by passing +-v+ options to db_copy
+
+  db_copy -f /path/to/config/file.yml -v
+
+Value from file will override the one given on the command line.
+
+Next optional parameter is +:force+. If it is set to true Migrator class will force table creation
+Similar to +verbose+ parameter this value can be set by passing +-o+ option to db_copy and value
+from configuration file will override the value given on the command line.
+
+Parameter +:skip_existing+ signals db_copy to skip tables that already exist in target database.
+
+If you do not want to copy some tables add them to the array +:skip+ in configuration file.
+
+There is a big probability that db_copy will not be able to copy database which is not Rails compliant.
+Reasons for this are numerous: unsupported column types, composite primary keys, etc. If you face such
+a problem create an issue and I will try to implement support for various special cases. However if used
+on Rails compliant databases db_copy should be able to peform full copy between any of supported RDBMS.
 
 = TODO
 
