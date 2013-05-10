@@ -111,7 +111,7 @@ instead of setting them through command line options. Generated file is:
 After setting values in configuration file Rmre can be started with just one option - path to
 configuration file.
 
-  rmre -r /tmp/test/rmre_db.yml
+  rmre -f /tmp/test/rmre_db.yml
 
 == If table names do not fit in Rails naming convention
 
