@@ -91,7 +91,7 @@ can be established.
 File comes in handy if you want to quickly check how generated models work. Just require this file
 when you start IRB and you're ready to go:
 
-  irb -r/tmp/rmre_db.rb
+  irb -r/tmp/test/rmre_db.rb
   >> connect
   >> ... test your model here
 
@@ -144,7 +144,7 @@ used to transform table name to plural or singular form. In the above example fi
 all table names wich end with +_des+ string as they are. This means for table +generated_des+ resulting
 file and model names will be +generated_des.rb+ and +GeneratedDes+. Second inflection will convert
 all names that end with +_fis+ by prepending string +rmre+ and appending suffix +_d+. For
-+tone_fis+ table resulting file and class names will be +rmre_fone_d+ and +RmreToneD+.
++tone_fis+ table resulting file and class names will be +rmre_tone_d+ and +RmreToneD+.
 
 = Copying databases
 
