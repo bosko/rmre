@@ -89,7 +89,7 @@ rescue OptionParser::ParseError => pe
 end
 
 if options[:file] == true
-  options[:db].merge!(:adapter=>'adapter_name',:database=>'db_name') if options[:db][:adapter].nil?
+  options[:db].merge!(:adapter=>'adapter_name',:database=>'db_name',:host=>'localhost') if options[:db][:adapter].nil?
   options.delete(:file)
   file_name = 'rmre_db'
   file_path = File.join(options[:out_path], "#{file_name}.yml")
