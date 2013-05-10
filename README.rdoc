@@ -63,6 +63,89 @@ If you want to try *Rmre* and you do not have sample database you can use
 _Sakila_ at http://dev.mysql.com/doc/sakila/en/sakila.html#sakila-installation for MySQL and
 _Pagila_ at http://pgfoundry.org/projects/dbsamples for PostgreSQL.
 
+== Configuration file
+
+Rmre will automatically generate sample configuration file if it is invoked with +-f+ switch
+without file name:
+
+  rmre -o /tmp/test -f
+
+Rmre creates two files +/tmp/test/rmre_db.rb+ and +/tmp/test/rmre_db.yml+. First file is sample
+how configuration and all models created by Rmre can be loaded and how connection to database
+can be established.
+
+  require "yaml"
+  require "active_record"
+
+  dir = File.join('/tmp/test', '*.rb')
+  Dir.glob(dir) { |file| require file }
+
+  def connect
+    settings_file = './rmre_db.yml'
+    exit unless File.exists?(settings_file)
+    settings = YAML.load_file(settings_file)
+    ActiveRecord::Base.establish_connection(settings[:db])
+    ActiveRecord::Base.connection
+  end
+
+File comes in handy if you want to quickly check how generated models work. Just require this file
+when you start IRB and you're ready to go:
+
+  irb -r/tmp/rmre_db.rb
+  >> connect
+  >> ... test your model here
+
+Second file is sample configuration file which can be used to set databse connection, output path
+instead of setting them through command line options. Generated file is:
+
+  ---
+  :db:
+    :username: ''
+    :password: ''
+    :port:
+    :timeout: 5000
+    :adapter: adapter_name
+    :database: db_name
+  :out_path: /tmp/test
+
+After setting values in configuration file Rmre can be started with just one option - path to
+configuration file.
+
+  rmre -r /tmp/test/rmre_db.yml
+
+== If table names do not fit in Rails naming convention
+
+Rmre uses ActiveSupport inflections to create names of the model. This can have side effect
+if table name ends with letter 's' and is not actually plural. Final file and class name will be
+truncated like for example for table name +generated_des+. Converting this name to singular
+form and forming file name will result in +generated_de.rb+ and model name will be GeneratedDe.
+Both of these are wrong. For that purpose Rmre allows defining additional inflections in the
+configuration file which can be used to properly convert (or leave as they are) table names
+to singular and plural form. Inflections can be defined in Rmre configuration file.
+
+  :inflections:
+  - :plural:
+    - (.*)_des$
+    - \1_des
+    :singular:
+    - (.*)_des$
+    - \1_des
+  - :plural:
+    - (.*)_fis$
+    - rmre_\1_d
+    :singular:
+    - (.*)_fis$
+    - rmre_\1_d
+
+Array given in +:inflections+ key must contain hashes and each hash must contain two keys
++:plural+ and +:singular+. Values for each key is array with two elements. First element is
+regular expression which will be used to match table names and second element is regular expression
+used to transform table name to plural or singular form. In the above example first hash will keep
+all table names wich end with +_des+ string as they are. This means for table +generated_des+ resulting
+file and model names will be +generated_des.rb+ and +GeneratedDes+. Second inflection will convert
+all names that end with +_fis+ by prepending string +rmre+ and appending suffix +_d+. For
++tone_fis+ table resulting file and class names will be +rmre_fone_d+ and +RmreToneD+.
+
 = Copying databases
 
 Rmre gem has built-in support for copying databases (structure and data). This feature is
