@@ -2,21 +2,23 @@ require "spec_helper"
 
 module Rmre
   describe Generator do
-    let(:settings) do |sett|
-      sett = {:db => {:adapter => 'some_adapter',
-          :database => 'db',
-          :username => 'user',
-          :password => 'pass'},
-        :out_path => File.join(Dir.tmpdir, 'gne-test'),
-        :include => ['incl1_', 'incl2_'],
-        :inflections => [{plural: ["(.*)_des$", '\1_des'], singular: ["(.*)_des$", '\1_des']}]
+    let(:settings) do
+      { db: {adapter: 'some_adapter',
+          database: 'db',
+          username: 'user',
+          password: 'pass'},
+        out_path: File.join(Dir.tmpdir, 'gne-test'),
+        include: ['incl1_', 'incl2_'],
+        inflections: [{plural: ["(.*)_des$", '\1_des'], singular: ["(.*)_des$", '\1_des']}]
       }
     end
 
-    let(:generator) do |gen|
+    let(:connection) do
+      double("db_connection", columns: [])
+    end
+
+    let(:generator) do
       gen = Generator.new(settings[:db], settings[:out_path], settings[:include], settings[:inflections])
-      connection = double("db_connection")
-      connection.stub(:columns).and_return([])
       gen.stub(:connection).and_return(connection)
       gen
     end

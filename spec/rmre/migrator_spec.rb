@@ -2,52 +2,38 @@ require "spec_helper"
 
 module Rmre
   describe Migrator do
-    let(:src_connection) do |src_con|
-      src_con = double("source_connection")
-    end
-
-    let(:tgt_connection) do |tgt_con|
-      tgt_con = double("target_connection")
-    end
-
-    let(:src_db_opts) do |opts|
-      opts = { :adapter => "fake_adapter", :database => "source_db" }
-    end
-
-    let(:tgt_db_opts) do |opts|
-      opts = { :adapter => "fake_adapter", :database => "target_db" }
-    end
-
-    let(:id_column) do |col|
+    let(:src_connection) { double("source_connection") }
+    let(:tgt_connection) { tgt_con = double("target_connection") }
+    let(:src_db_opts) { { adapter: "fake_adapter", database: "source_db" } }
+    let(:tgt_db_opts) { { adapter: "fake_adapter", database: "target_db" } }
+    let(:id_column) do
       col = double("id_column")
-      col.stub!(:name).and_return("id")
-      col.stub!(:null).and_return(false)
-      col.stub!(:default).and_return(nil)
-      col.stub!(:type).and_return("integer")
+      col.stub(:name).and_return("id")
+      col.stub(:null).and_return(false)
+      col.stub(:default).and_return(nil)
+      col.stub(:type).and_return("integer")
       col
     end
-
-    let(:name_column) do |col|
+    let(:name_column) do
       col = double("name_column")
-      col.stub!(:name).and_return("name")
-      col.stub!(:null).and_return(false)
-      col.stub!(:default).and_return(nil)
-      col.stub!(:type).and_return("integer")
+      col.stub(:name).and_return("name")
+      col.stub(:null).and_return(false)
+      col.stub(:default).and_return(nil)
+      col.stub(:type).and_return("integer")
       col
     end
-
-    let(:table) do |tbl|
+    let(:table) do
       tbl = double("created_table")
-      tbl.stub!(:column)
+      tbl.stub(:column)
       tbl
     end
 
     before(:each) do
-      Source::Db.stub!(:establish_connection).and_return(true)
-      Source::Db.stub!(:connection).and_return(src_connection)
+      Source::Db.stub(:establish_connection).and_return(true)
+      Source::Db.stub(:connection).and_return(src_connection)
 
-      Target::Db.stub!(:establish_connection).and_return(true)
-      Target::Db.stub!(:connection).and_return(tgt_connection)
+      Target::Db.stub(:establish_connection).and_return(true)
+      Target::Db.stub(:connection).and_return(tgt_connection)
     end
 
     context "initialization" do
@@ -67,11 +53,11 @@ module Rmre
     context "copying tables" do
       before(:each) do
         src_connection.stub(:tables).and_return %w{parent_table child_table}
-        src_connection.stub!(:columns).and_return([id_column, name_column])
-        src_connection.stub!(:primary_key).and_return("id")
+        src_connection.stub(:columns).and_return([id_column, name_column])
+        src_connection.stub(:primary_key).and_return("id")
 
         @migrator = Migrator.new(src_db_opts, tgt_db_opts)
-        @migrator.stub!(:copy_data)
+        @migrator.stub(:copy_data)
       end
 
       it "copies all tables if they do not exist" do
@@ -111,7 +97,7 @@ module Rmre
     context "copying tables with 'skip existing' turned on" do
       before(:each) do
         src_connection.stub(:tables).and_return %w{parent_table child_table}
-        src_connection.stub!(:columns).and_return([id_column, name_column])
+        src_connection.stub(:columns).and_return([id_column, name_column])
 
         @migrator = Migrator.new(src_db_opts, tgt_db_opts, {:skip_existing => true})
       end
@@ -131,8 +117,8 @@ module Rmre
       context "Rails copy mode" do
         before(:each) do
           @migrator = Migrator.new(src_db_opts, tgt_db_opts)
-          src_connection.stub!(:primary_key).and_return("id")
-          tgt_connection.stub!(:adapter_name).and_return("fake adapter")
+          src_connection.stub(:primary_key).and_return("id")
+          tgt_connection.stub(:adapter_name).and_return("fake adapter")
         end
 
         it "does not explicitely create ID column" do
@@ -153,8 +139,8 @@ module Rmre
       context "non-Rails copy mode" do
         before(:each) do
           @migrator = Migrator.new(src_db_opts, tgt_db_opts, {:rails_copy_mode => false})
-          tgt_connection.stub!(:adapter_name).times.and_return("fake adapter")
-          src_connection.stub!(:primary_key).and_return("primaryIdColumn")
+          tgt_connection.stub(:adapter_name).times.and_return("fake adapter")
+          src_connection.stub(:primary_key).and_return("primaryIdColumn")
         end
 
         it "explicitely creates ID column" do
