@@ -13,6 +13,6 @@ class <%= table_name.tableize.classify %> < ActiveRecord::Base
 
   <% constraints.each do |constraint| %>
     <%= constraint -%>
-    
+
   <% end %>
 end
