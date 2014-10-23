@@ -66,6 +66,10 @@ optparse = OptionParser.new do |opts|
     options[:db][:host] = s
   end
 
+  opts.on('--ssl-ca [FILE]','SSL Certificate') do |ssl|
+    options[:db][:sslca] = ssl
+  end
+
   opts.on('-i', '--include pattern1,pattern2', Array, 'Include prefixes') do |i|
     options[:include] = i
   end
@@ -78,6 +82,7 @@ optparse = OptionParser.new do |opts|
   opts.on('--dump-schema [FILE]', 'Create schema migration to FILE') do |ds_file|
     options[:dump_schema] = ds_file
   end
+
 end
 
 begin
