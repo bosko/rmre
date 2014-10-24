@@ -1,6 +1,11 @@
 Rmre is utility gem for creating Ruby on Rails models for legacy databases.
 
 Changes:
+=== Current
+
+* Enhancements
+
+  * MySQL ssl-ca option added ({Uri Mikhli}(https://github.com/urimikhli))
 
 === 0.0.7 / 2013-05-09
 
