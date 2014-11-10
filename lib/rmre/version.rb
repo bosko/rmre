@@ -1,3 +1,3 @@
 module Rmre
-  VERSION = "0.0.8" unless defined?(::Rmre::VERSION)
+  VERSION = "0.0.9" unless defined?(::Rmre::VERSION)
 end
