@@ -44,7 +44,7 @@ optparse = OptionParser.new do |opts|
   end
   
   options[:db][:socket] = nil
-  opts.on('--socket [SOCKET]', 'Socket to use for database connection') do |k|
+  opts.on('-k', '--socket [SOCKET]', 'Socket to use for database connection') do |k|
     options[:db][:socket] = k
   end
 
