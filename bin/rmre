@@ -42,6 +42,11 @@ optparse = OptionParser.new do |opts|
   opts.on('--port [PORT]', 'Port to use for database connection') do |p|
     options[:db][:port] = p
   end
+  
+  options[:db][:socket] = nil
+  opts.on('-k', '--socket [SOCKET]', 'Socket to use for database connection') do |k|
+    options[:db][:socket] = k
+  end
 
   options[:db][:timeout] = 5000
   opts.on('-t', '--timeout [TIMEOUT]', 'Database connection timeout') do |t|
